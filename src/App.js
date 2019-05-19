@@ -6,8 +6,17 @@ import SendMessageForm from "./component/SendMessageForm";
 import Chatkit from "@pusher/chatkit-client";
 import { instanceLocator, tokenLocator } from "./config";
 import React, { Component } from "react";
+import { join } from "path";
 class App extends Component {
-  state = {};
+  constructor() {
+    super();
+    this.state = {
+      messages: [],
+      rooms: [],
+      joinableRooms: []
+    };
+    this.sendMessage = this.sendMessage.bind(this);
+  }
 
   componentDidMount() {
     const chatManager = new Chatkit.ChatManager({
@@ -18,23 +27,42 @@ class App extends Component {
       })
     });
     chatManager.connect().then(currentUser => {
+      this.currentUser = currentUser;
+      this.currentUser
+        .getJoinableRooms()
+        .then(joinableRooms => {
+          this.setState({
+            joinableRooms: joinableRooms,
+            rooms: this.currentUser.rooms
+          });
+        })
+        .catch(err => console.log("Error on retrieving rooms", err));
       currentUser.subscribeToRoom({
         roomId: currentUser.rooms[0].id,
         hooks: {
           onMessage: message => {
-            console.log("message.text", message.text);
+            this.setState({
+              messages: [...this.state.messages, message]
+            });
           }
         }
       });
     });
   }
 
+  sendMessage(text) {
+    this.currentUser.sendMessage({
+      text: text,
+      roomId: "21185977"
+    });
+  }
+
   render() {
     return (
       <div className="app">
-        <RoomList />
-        <MessageList />
-        <SendMessageForm />
+        <RoomList rooms={[...this.state.joinableRooms, ...this.state.rooms]} />
+        <MessageList messages={this.state.messages} />
+        <SendMessageForm sendMessage={this.sendMessage} />
         <NewRoomForm />
       </div>
     );
