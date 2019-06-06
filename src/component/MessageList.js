@@ -1,6 +1,6 @@
-import React, { Component } from "react";
-import Message from "./Message";
-import ReactDOM from "react-dom";
+import React, { Component } from 'react';
+import Message from './Message';
+import ReactDOM from 'react-dom';
 // const DUMMY_DATA = [
 //   { senderId: "peter", text: "Hey, how is it going?" },
 //   { senderId: "jane", text: "im good and you?" },
@@ -15,8 +15,9 @@ class MessageList extends Component {
     //Determines when to scroll
     const node = ReactDOM.findDOMNode(this);
     //ScrollTop = amount scrolled
-    //CLientHeigh = height of element on display
-    //scrollHEight = Height of entire element (fully scrolled)
+    //ClientHeight = height of element on display
+    //scrollHeight = Height of entire element (fully scrolled)
+    // +100 acts as a buffer. if nearly at the bottom , then autoscroll activated
     this.shouldScrollToBottom =
       node.scrollTop + node.clientHeight + 100 >= node.scrollHeight;
   }
@@ -30,8 +31,15 @@ class MessageList extends Component {
   }
 
   render() {
+    if (!this.props.roomId) {
+      return (
+        <div className='message-list'>
+          <div className='join-room'>&larr; Join a room!</div>
+        </div>
+      );
+    }
     return (
-      <div className="message-list">
+      <div className='message-list'>
         {this.props.messages.map((message, index) => {
           return (
             <Message

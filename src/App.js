@@ -1,12 +1,12 @@
-import "./App.css";
-import MessageList from "./component/MessageList";
-import NewRoomForm from "./component/NewRoomForm";
-import RoomList from "./component/RoomList";
-import SendMessageForm from "./component/SendMessageForm";
-import Chatkit from "@pusher/chatkit-client";
-import { instanceLocator, tokenLocator } from "./config";
-import React, { Component } from "react";
-import { join } from "path";
+import './App.css';
+import MessageList from './component/MessageList';
+import NewRoomForm from './component/NewRoomForm';
+import RoomList from './component/RoomList';
+import SendMessageForm from './component/SendMessageForm';
+import Chatkit from '@pusher/chatkit-client';
+import { instanceLocator, tokenLocator } from './config';
+import React, { Component } from 'react';
+import { join } from 'path';
 class App extends Component {
   constructor() {
     super();
@@ -19,12 +19,13 @@ class App extends Component {
     this.sendMessage = this.sendMessage.bind(this);
     this.subscribeToRoom = this.subscribeToRoom.bind(this);
     this.getRooms = this.getRooms.bind(this);
+    this.createRoom = this.createRoom.bind(this);
   }
 
   componentDidMount() {
     const chatManager = new Chatkit.ChatManager({
       instanceLocator: instanceLocator,
-      userId: "AJ",
+      userId: 'AJ',
       tokenProvider: new Chatkit.TokenProvider({
         url: tokenLocator
       })
@@ -71,17 +72,30 @@ class App extends Component {
     });
   }
 
+  createRoom(roomName) {
+    this.currentUser
+      .createRoom({ name: roomName })
+      .then(room => this.subscribeToRoom(room.id))
+      .catch(err => console.log('error with creating room: ', err));
+  }
+
   render() {
     return (
-      <div className="app">
+      <div className='app'>
         <RoomList
           roomId={this.state.roomId}
           subscribeToRoom={this.subscribeToRoom}
           rooms={[...this.state.joinableRooms, ...this.state.rooms]}
         />
-        <MessageList messages={this.state.messages} />
-        <SendMessageForm sendMessage={this.sendMessage} />
-        <NewRoomForm />
+        <MessageList
+          messages={this.state.messages}
+          roomId={this.state.roomId}
+        />
+        <SendMessageForm
+          sendMessage={this.sendMessage}
+          disabled={!this.state.roomId}
+        />
+        <NewRoomForm createRoom={this.createRoom} />
       </div>
     );
   }
